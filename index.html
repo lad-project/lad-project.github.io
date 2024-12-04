@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -99,147 +100,149 @@
         }
     </style>
 </head>
-<body>
-<div class="container">
-    <h1>Batch Processing Tool</h1>
 
-    <label for="input">Input Lines (Tab-separated):</label>
-    <textarea id="input" placeholder="Enter lines here like...
+<body>
+    <div class="container">
+        <h1>Batch Processing Tool</h1>
+
+        <label for="input">Input Lines (Tab-separated):</label>
+        <textarea id="input" placeholder="Enter lines here like...
 Ren	白鸟蓝良[J]	2
 Zhong	守泽千秋[L]	2"></textarea>
 
-    <button id="processButton">Process</button>
+        <button id="processButton">Process</button>
 
-    <label for="log">Log:</label>
-    <div id="log" class="log-output-box" readonly></div>
+        <label for="log">Log:</label>
+        <div id="log" class="log-output-box" readonly></div>
 
-    <label for="output">Order Instructions:</label>
-    <div id="output" class="log-output-box" readonly></div>
-</div>
+        <label for="output">Order Instructions:</label>
+        <div id="output" class="log-output-box" readonly></div>
+    </div>
 
-<div class="footer">
-    <p>&copy; 2024 Batch Processing Tool. All rights reserved.</p>
-</div>
+    <div class="footer">
+        <p>&copy; 2024 Batch Processing Tool. All rights reserved.</p>
+    </div>
 
-<script>
-    class Rec {
-        constructor(cn, character, number) {
-            this.cn = cn;
-            this.character = character;
-            this.number = number;
-            this.remainNumber = number;
-        }
-
-        toString() {
-            return `Rec{cn='${this.cn}', character='${this.character}', number=${this.number}, remainNumber=${this.remainNumber}}`;
-        }
-    }
-
-    function logMessage(message) {
-        const logBox = document.getElementById('log');
-        logBox.textContent += message + '\n';
-        console.log(message);
-    }
-
-    function split(batchSize, inputRec, resultSet) {
-        let tempRec = [];
-        const copy = [...inputRec];
-        let flag = true;
-        let maxIterations = 1000;
-        let iterationCount = 0;
-
-        while (flag && iterationCount < maxIterations) {
-            iterationCount++;
-
-            while (tempRec.length < batchSize) {
-                const ele = copy.find(item => !tempRec.some(rec => rec.character === item.character));
-                if (!ele) {
-                    flag = false;
-                    break;
-                }
-                copy.splice(copy.indexOf(ele), 1);
-                tempRec.push(ele);
+    <script>
+        class Rec {
+            constructor(cn, character, number) {
+                this.cn = cn;
+                this.character = character;
+                this.number = number;
+                this.remainNumber = number;
             }
 
-            if (tempRec.length === batchSize) {
-                const minRemainRec = tempRec.reduce((min, rec) => rec.remainNumber < min.remainNumber ? rec : min);
-                const collect = tempRec.map(rec => rec.character).sort();
-                for (let i = 0; i < minRemainRec.remainNumber; i++) {
-                    resultSet.push(collect);
-                }
-                tempRec.forEach(rec => rec.remainNumber -= minRemainRec.remainNumber);
-                tempRec = tempRec.filter(rec => rec.remainNumber > 0);
+            toString() {
+                return `Rec{cn='${this.cn}', character='${this.character}', number=${this.number}, remainNumber=${this.remainNumber}}`;
             }
         }
 
-        if (iterationCount >= maxIterations) {
-            console.warn("Warning: Maximum iterations reached, potential infinite loop or invalid data.");
+        function logMessage(message) {
+            const logBox = document.getElementById('log');
+            logBox.textContent += message + '\n';
+            console.log(message);
         }
 
-        return tempRec;
-    }
+        function split(batchSize, inputRec, resultSet) {
+            let tempRec = [];
+            const copy = [...inputRec];
+            let flag = true;
+            let maxIterations = 1000;
+            let iterationCount = 0;
 
-    document.getElementById('processButton').addEventListener('click', () => {
-        const inputText = document.getElementById('input').value;
-        const logBox = document.getElementById('log');
-        const outputBox = document.getElementById('output');
+            while (flag && iterationCount < maxIterations) {
+                iterationCount++;
 
-        logBox.textContent = '';
-        outputBox.textContent = '';
+                while (tempRec.length < batchSize) {
+                    const ele = copy.find(item => !tempRec.some(rec => rec.character === item.character));
+                    if (!ele) {
+                        flag = false;
+                        break;
+                    }
+                    copy.splice(copy.indexOf(ele), 1);
+                    tempRec.push(ele);
+                }
 
-        if (!inputText.trim()) {
-            logMessage('Input is empty.');
-            return;
+                if (tempRec.length === batchSize) {
+                    const minRemainRec = tempRec.reduce((min, rec) => rec.remainNumber < min.remainNumber ? rec : min);
+                    const collect = tempRec.map(rec => rec.character).sort();
+                    for (let i = 0; i < minRemainRec.remainNumber; i++) {
+                        resultSet.push(collect);
+                    }
+                    tempRec.forEach(rec => rec.remainNumber -= minRemainRec.remainNumber);
+                    tempRec = tempRec.filter(rec => rec.remainNumber > 0);
+                }
+            }
+
+            if (iterationCount >= maxIterations) {
+                console.warn("Warning: Maximum iterations reached, potential infinite loop or invalid data.");
+            }
+
+            return tempRec;
         }
 
-        const lines = inputText.split('\n').filter(line => line.trim());
-        const recs = [];
-        lines.forEach(line => {
-            const arr = line.split('\t');
-            if (arr.length < 3) {
-                logMessage(`Invalid line: ${line}`);
+        document.getElementById('processButton').addEventListener('click', () => {
+            const inputText = document.getElementById('input').value;
+            const logBox = document.getElementById('log');
+            const outputBox = document.getElementById('output');
+
+            logBox.textContent = '';
+            outputBox.textContent = '';
+
+            if (!inputText.trim()) {
+                logMessage('Input is empty.');
                 return;
             }
-            recs.push(new Rec(arr[0], arr[1], parseInt(arr[2])));
+
+            const lines = inputText.split('\n').filter(line => line.trim());
+            const recs = [];
+            lines.forEach(line => {
+                const arr = line.split('\t');
+                if (arr.length < 3) {
+                    logMessage(`Invalid line: ${line}`);
+                    return;
+                }
+                recs.push(new Rec(arr[0], arr[1], parseInt(arr[2])));
+            });
+
+            const MAX_BATCH_SIZE = 20;
+            const MIN_BATCH_SIZE = 12;
+            const sets = [];
+
+            let tempRec = split(MAX_BATCH_SIZE, recs, sets);
+
+            // 清空输入框
+            document.getElementById('input').value = '';
+
+            let queueSize = tempRec.length;
+            let remainSize = MAX_BATCH_SIZE - queueSize;
+            logMessage(`\n特优批 除 ${tempRec.map(r => r.character).join(', ')} 外再凑够 ${remainSize} 种角色即可发车`);
+
+            const noWay = split(MIN_BATCH_SIZE, tempRec, sets);
+
+            queueSize = noWay.length;
+            remainSize = MIN_BATCH_SIZE - queueSize;
+            logMessage(`尾数批 除 ${noWay.map(r => r.character).join(', ')} 外再凑够 ${remainSize} 种角色即可发车`);
+
+            // 将 recs 结果写入到输入框
+            recs.forEach(r => {
+                document.getElementById('input').value += `${r.cn}\t${r.character}\t${r.number}\t${r.remainNumber}\n`;
+            });
+
+            const result = {};
+            sets.forEach(set => {
+                const key = set.join(', ');
+                result[key] = (result[key] || 0) + 1;
+            });
+
+            const sortedResult = Object.entries(result).sort((a, b) => b[1] - a[1]);
+            sortedResult.forEach(([key, value]) => {
+                outputBox.textContent += `${key}: ${value}\n`;
+            });
+
+            logMessage(`\n优化前下单 ${Object.keys(result).length} 次`);
         });
-
-        const MAX_BATCH_SIZE = 20;
-        const MIN_BATCH_SIZE = 12;
-        const sets = [];
-
-        let tempRec = split(MAX_BATCH_SIZE, recs, sets);
-
-        // 清空输入框
-        document.getElementById('input').value = '';
-
-        // 将 recs 结果写入到输入框
-        recs.forEach(r => {
-            document.getElementById('input').value += `${r.cn}\t${r.character}\t${r.number}\t${r.remainNumber}\n`;
-        });
-
-        let queueSize = tempRec.length;
-        let remainSize = MAX_BATCH_SIZE - queueSize;
-        logMessage(`\n特优批 除 ${tempRec.map(r => r.character).join(', ')} 外再凑够 ${remainSize} 种角色即可发车`);
-
-        const noWay = split(MIN_BATCH_SIZE, tempRec, sets);
-
-        queueSize = noWay.length;
-        remainSize = MIN_BATCH_SIZE - queueSize;
-        logMessage(`尾数批 除 ${noWay.map(r => r.character).join(', ')} 外再凑够 ${remainSize} 种角色即可发车`);
-
-        const result = {};
-        sets.forEach(set => {
-            const key = set.join(', ');
-            result[key] = (result[key] || 0) + 1;
-        });
-
-        const sortedResult = Object.entries(result).sort((a, b) => b[1] - a[1]);
-        sortedResult.forEach(([key, value]) => {
-            outputBox.textContent += `${key}: ${value}\n`;
-        });
-
-        logMessage(`\n优化前下单 ${Object.keys(result).length} 次`);
-    });
-</script>
+    </script>
 </body>
+
 </html>
