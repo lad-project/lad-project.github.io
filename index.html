@@ -130,6 +130,7 @@ Zhong	守泽千秋[L]	2"></textarea>
                 this.character = character;
                 this.number = number;
                 this.remainNumber = number;
+                this.orderNum = 0;
             }
 
             toString() {
@@ -169,7 +170,12 @@ Zhong	守泽千秋[L]	2"></textarea>
                     for (let i = 0; i < minRemainRec.remainNumber; i++) {
                         resultSet.push(collect);
                     }
-                    tempRec.forEach(rec => rec.remainNumber -= minRemainRec.remainNumber);
+                    tempRec.sort((a, b) => b.remainNumber - a.remainNumber)
+                    tempRec.forEach(rec => {
+                        rec.orderNum += minRemainRec.remainNumber
+                        rec.remainNumber -= minRemainRec.remainNumber
+
+                    });
                     tempRec = tempRec.filter(rec => rec.remainNumber > 0);
                 }
             }
@@ -209,11 +215,11 @@ Zhong	守泽千秋[L]	2"></textarea>
             const MIN_BATCH_SIZE = 12;
             const sets = [];
 
-            let tempRec = split(MAX_BATCH_SIZE, recs, sets);
 
             // 清空输入框
             document.getElementById('input').value = '';
 
+            let tempRec = split(MAX_BATCH_SIZE, recs, sets);
             let queueSize = tempRec.length;
             let remainSize = MAX_BATCH_SIZE - queueSize;
             logMessage(`\n特优批 除 ${tempRec.map(r => r.character).join(', ')} 外再凑够 ${remainSize} 种角色即可发车`);
@@ -226,7 +232,7 @@ Zhong	守泽千秋[L]	2"></textarea>
 
             // 将 recs 结果写入到输入框
             recs.forEach(r => {
-                document.getElementById('input').value += `${r.cn}\t${r.character}\t${r.number}\t${r.remainNumber}\n`;
+                document.getElementById('input').value += `${r.cn}\t${r.character}\t${r.number}\t${r.orderNum}\n`;
             });
 
             const result = {};
