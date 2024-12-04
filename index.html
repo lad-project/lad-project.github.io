@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batch Processing Tool</title>
     <style>
-        /* 整体页面设置 */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f7fb;
@@ -15,7 +14,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* 页面最小高度为100vh */
+            min-height: 100vh;
             flex-direction: column;
             overflow: hidden;
         }
@@ -26,11 +25,10 @@
             margin-bottom: 20px;
         }
 
-        /* 容器布局 */
         .container {
             width: 100%;
-            max-width: 800px; /* 最大宽度800px */
-            min-width: 600px; /* 最小宽度600px */
+            max-width: 800px;
+            min-width: 600px;
             background-color: #fff;
             padding: 20px;
             border-radius: 10px;
@@ -41,7 +39,6 @@
             box-sizing: border-box;
         }
 
-        /* 输入框样式 */
         textarea {
             width: 100%;
             height: 200px;
@@ -55,11 +52,6 @@
             resize: vertical;
         }
 
-        textarea[readonly] {
-            background-color: #f9f9f9;
-        }
-
-        /* 按钮样式 */
         button {
             padding: 12px 20px;
             background-color: #007bff;
@@ -80,7 +72,6 @@
             cursor: not-allowed;
         }
 
-        /* 标题和标签 */
         label {
             font-size: 16px;
             margin-bottom: 8px;
@@ -88,7 +79,6 @@
             display: block;
         }
 
-        /* 日志框和输出框 */
         .log-output-box {
             background-color: #f8f9fa;
             border: 1px solid #ddd;
@@ -96,65 +86,16 @@
             border-radius: 8px;
             font-size: 14px;
             min-height: 120px;
-            max-height: 200px; /* 限制最大高度 */
+            max-height: 200px;
             white-space: pre-wrap;
-            overflow-y: auto; /* 启用垂直滚动条 */
+            overflow-y: auto;
             margin-bottom: 20px;
-        }
-
-        .log-output-box#output {
-            background-color: #eaf7e7;
-        }
-
-        .log-output-box#log {
-            background-color: #f0f0f0;
         }
 
         .footer {
             font-size: 12px;
             color: #777;
             margin-top: 20px;
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 20px;
-            }
-
-            button {
-                font-size: 14px;
-                padding: 10px 15px;
-            }
-
-            textarea {
-                font-size: 13px;
-                padding: 8px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                min-width: 100%;
-            }
-
-            h1 {
-                font-size: 18px;
-            }
-
-            button {
-                font-size: 13px;
-                padding: 8px 12px;
-            }
-
-            textarea {
-                font-size: 12px;
-                padding: 6px;
-            }
         }
     </style>
 </head>
@@ -164,8 +105,8 @@
 
     <label for="input">Input Lines (Tab-separated):</label>
     <textarea id="input" placeholder="Enter lines here like...
-测试53	佐贺美阵[J]	1
-测试54	守泽千秋[L]	2"></textarea>
+Ren	白鸟蓝良[J]	2
+Zhong	守泽千秋[L]	2"></textarea>
 
     <button id="processButton">Process</button>
 
@@ -195,19 +136,16 @@
     }
 
     function logMessage(message) {
-        // 打印到 logbox
         const logBox = document.getElementById('log');
         logBox.textContent += message + '\n';
-
-        // 同时打印到控制台
         console.log(message);
     }
 
     function split(batchSize, inputRec, resultSet) {
-        let tempRec = [];  // 使用 let 代替 const
+        let tempRec = [];
         const copy = [...inputRec];
         let flag = true;
-        let maxIterations = 1000; // 防止无限循环，最多迭代1000次
+        let maxIterations = 1000;
         let iterationCount = 0;
 
         while (flag && iterationCount < maxIterations) {
@@ -271,8 +209,12 @@
 
         let tempRec = split(MAX_BATCH_SIZE, recs, sets);
 
+        // 清空输入框
+        document.getElementById('input').value = '';
+
+        // 将 recs 结果写入到输入框
         recs.forEach(r => {
-            logMessage(`${r.cn}\t${r.character}\t${r.number}\t${r.remainNumber}`);
+            document.getElementById('input').value += `${r.cn}\t${r.character}\t${r.number}\t${r.remainNumber}\n`;
         });
 
         let queueSize = tempRec.length;
