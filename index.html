@@ -4,63 +4,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batch Processing Tool</title>
+    <title>Order Processing</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f7fb;
-            color: #333;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f1f4f8;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 20px;
+            height: 100vh;
         }
 
         .container {
-            width: 100%;
-            max-width: 800px;
-            min-width: 600px;
-            background-color: #fff;
-            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 1200px;
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            overflow: hidden;
+            height: 80vh;
+            /* 增加容器的高度，使其更加充实 */
+        }
+
+        .section {
+            width: 48%;
+            height: 100%;
+            /* 让每个section占满父容器高度 */
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            display: block;
         }
 
         textarea {
             width: 100%;
-            height: 200px;
-            padding: 10px;
+            height: 220px;
+            padding: 12px;
+            font-size: 14px;
             border: 1px solid #ccc;
             border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            box-sizing: border-box;
-            margin-bottom: 20px;
             resize: vertical;
+            background-color: #f9f9f9;
+            flex-grow: 1;
+            color: #333;
+            /* 字体颜色稍微加深，增加对比度 */
+            transition: border-color 0.3s;
+            font-family: 'Poppins', sans-serif;
+            /* 允许textarea自动增长 */
+        }
+
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
         }
 
         button {
-            padding: 12px 20px;
+            width: 100%;
+            padding: 15px;
             background-color: #007bff;
             color: white;
             font-size: 16px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
+            margin-top: 20px;
             transition: background-color 0.3s;
         }
 
@@ -68,60 +98,33 @@
             background-color: #0056b3;
         }
 
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+        .section textarea:disabled {
+            background-color: #f0f0f0;
         }
 
-        label {
-            font-size: 16px;
-            margin-bottom: 8px;
-            font-weight: bold;
-            display: block;
+        .section:nth-child(2) textarea {
+            height: 140px;
         }
 
-        .log-output-box {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
+        .order-guidance {
+            margin-top: 20px;
             padding: 10px;
+            background-color: #f7f8fa;
+            border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 14px;
-            min-height: 120px;
-            max-height: 200px;
-            white-space: pre-wrap;
-            overflow-y: auto;
-            margin-bottom: 20px;
+            color: #333;
         }
 
-        .footer {
-            font-size: 12px;
-            color: #777;
-            margin-top: 20px;
+        .order-guidance p {
+            margin-bottom: 10px;
+        }
+
+        .order-guidance span {
+            font-weight: 700;
+            color: #007bff;
         }
     </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>Batch Processing Tool</h1>
-
-        <label for="input">Input Lines (Tab-separated):</label>
-        <textarea id="input" placeholder="Enter lines here like...
-Ren	白鸟蓝良[J]	2
-Zhong	守泽千秋[L]	2"></textarea>
-
-        <button id="processButton">Process</button>
-
-        <label for="log">Log:</label>
-        <div id="log" class="log-output-box" readonly></div>
-
-        <label for="output">Order Instructions:</label>
-        <div id="output" class="log-output-box" readonly></div>
-    </div>
-
-    <div class="footer">
-        <p>&copy; 2024 Batch Processing Tool. All rights reserved.</p>
-    </div>
 
     <script>
         class Rec {
@@ -129,127 +132,129 @@ Zhong	守泽千秋[L]	2"></textarea>
                 this.cn = cn;
                 this.character = character;
                 this.number = number;
-                this.remainNumber = number;
-                this.orderNum = 0;
-            }
-
-            toString() {
-                return `Rec{cn='${this.cn}', character='${this.character}', number=${this.number}, remainNumber=${this.remainNumber}}`;
+                this.orderNumber = 0;
             }
         }
 
-        function logMessage(message) {
-            const logBox = document.getElementById('log');
-            logBox.textContent += message + '\n';
-            console.log(message);
-        }
-
-        function split(batchSize, inputRec, resultSet) {
-            let tempRec = [];
-            const copy = [...inputRec];
-            let flag = true;
-            let maxIterations = 1000;
-            let iterationCount = 0;
-
-            while (flag && iterationCount < maxIterations) {
-                iterationCount++;
-
-                while (tempRec.length < batchSize) {
-                    const ele = copy.find(item => !tempRec.some(rec => rec.character === item.character));
-                    if (!ele) {
-                        flag = false;
-                        break;
-                    }
-                    copy.splice(copy.indexOf(ele), 1);
-                    tempRec.push(ele);
-                }
-
-                if (tempRec.length === batchSize) {
-                    const minRemainRec = tempRec.reduce((min, rec) => rec.remainNumber < min.remainNumber ? rec : min);
-                    const subNumber = minRemainRec.remainNumber;
-                    const collect = tempRec.map(rec => rec.character).sort();
-                    for (let i = 0; i < subNumber; i++) {
-                        resultSet.push(collect);
-                    }
-                    tempRec.sort((a, b) => b.remainNumber - a.remainNumber)
-                    tempRec.forEach(rec => {
-                        rec.orderNum += subNumber
-                        rec.remainNumber -= subNumber
-
-                    });
-                    tempRec = tempRec.filter(rec => rec.remainNumber > 0);
-                }
-            }
-
-            if (iterationCount >= maxIterations) {
-                console.warn("Warning: Maximum iterations reached, potential infinite loop or invalid data.");
-            }
-
-            return tempRec;
-        }
-
-        document.getElementById('processButton').addEventListener('click', () => {
-            const inputText = document.getElementById('input').value;
-            const logBox = document.getElementById('log');
-            const outputBox = document.getElementById('output');
-
-            logBox.textContent = '';
-            outputBox.textContent = '';
-
-            if (!inputText.trim()) {
-                logMessage('Input is empty.');
-                return;
-            }
-
-            const lines = inputText.split('\n').filter(line => line.trim());
-            const recs = [];
-            lines.forEach(line => {
-                const arr = line.split('\t');
-                if (arr.length < 3) {
-                    logMessage(`Invalid line: ${line}`);
-                    return;
-                }
-                recs.push(new Rec(arr[0], arr[1], parseInt(arr[2])));
+        function processInput(input) {
+            const lines = input.split("\n").filter(line => line.trim() !== "");
+            const recs = lines.map(line => {
+                const [cn, character, number] = line.split("\t");
+                return new Rec(cn, character, parseInt(number, 10));
             });
 
-            const MAX_BATCH_SIZE = 20;
-            const MIN_BATCH_SIZE = 12;
+            const group = recs.reduce((map, rec) => {
+                if (!map[rec.character]) map[rec.character] = 0;
+                map[rec.character] += rec.number;
+                return map;
+            }, {});
+
+            const sortedGroup = Object.entries(group).sort((a, b) => b[1] - a[1]);
+
+            let top12 = sortedGroup.slice(0, 12);
+            let remaining = sortedGroup.slice(12);
+
             const sets = [];
+            let flag = true;
+            let list = top12;
+            let f = remaining;
 
+            while (flag) {
+                const min = Math.min(...list.map(entry => entry[1]));
+                for (let i = 0; i < min; i++) {
+                    sets.push(new Set(list.map(entry => entry[0])));
+                    list.forEach(entry => entry[1] -= 1);
+                }
 
-            // 清空输入框
-            document.getElementById('input').value = '';
+                list = list.filter(entry => entry[1] > 0);
 
-            let tempRec = split(MAX_BATCH_SIZE, recs, sets);
-            let queueSize = tempRec.length;
-            let remainSize = MAX_BATCH_SIZE - queueSize;
-            logMessage(`\n特优批 除 ${tempRec.map(r => r.character).join(', ')} 外再凑够 ${remainSize} 种角色即可发车`);
+                const needToPop = 12 - list.length;
+                if (f.length < needToPop) {
+                    flag = false;
+                    break;
+                } else {
+                    while (list.length < 12) {
+                        list.push(f.shift());
+                    }
+                }
+            }
 
-            const noWay = split(MIN_BATCH_SIZE, tempRec, sets);
+            while (f.length > 0) {
+                const pop = f.pop();
+                for (const set of sets) {
+                    if (!set.has(pop[0])) {
+                        set.add(pop[0]);
+                        pop[1] -= 1;
+                        if (pop[1] === 0) break;
+                    }
+                }
+            }
 
-            queueSize = noWay.length;
-            remainSize = MIN_BATCH_SIZE - queueSize;
-            logMessage(`尾数批 除 ${noWay.map(r => r.character).join(', ')} 外再凑够 ${remainSize} 种角色即可发车`);
+            const orderGuidance = generateOrderGuidance(sets);
 
-            // 将 recs 结果写入到输入框
-            recs.forEach(r => {
-                document.getElementById('input').value += `${r.cn}\t${r.character}\t${r.number}\t${r.orderNum}\n`;
+            const orderCountMap = sets.reduce((map, set) => {
+                set.forEach(character => {
+                    map[character] = (map[character] || 0) + 1;
+                });
+                return map;
+            }, {});
+
+            const results = recs.map(rec => {
+                const waitSubNumber = orderCountMap[rec.character] || 0;
+                rec.orderNumber = Math.min(rec.number, waitSubNumber);
+                orderCountMap[rec.character] -= rec.orderNumber;
+                return `${rec.cn}\t${rec.character}\t${rec.number}\t${rec.orderNumber}`;
             });
 
-            const result = {};
-            sets.forEach(set => {
-                const key = set.join(', ');
-                result[key] = (result[key] || 0) + 1;
-            });
+            return { results: results.join("\n"), orderGuidance };
+        }
 
-            const sortedResult = Object.entries(result).sort((a, b) => b[1] - a[1]);
-            sortedResult.forEach(([key, value]) => {
-                outputBox.textContent += `${key}: ${value}\n`;
-            });
+        function generateOrderGuidance(sets) {
+            const setCountMap = sets.reduce((map, set) => {
+                const key = JSON.stringify([...set].sort());
+                map[key] = (map[key] || 0) + 1;
+                return map;
+            }, {});
 
-            logMessage(`\n优化前下单 ${Object.keys(result).length} 次`);
-        });
+            const result = Object.entries(setCountMap)
+                .map(([key, count]) => {
+                    const setElements = JSON.parse(key);
+                    return `[${setElements.join(", ")}] : ${count}`;
+                })
+                .join("\n");
+
+            return result;
+        }
+
+        function handleProcess() {
+            const inputText = document.getElementById("inputArea").value;
+            const { results, orderGuidance } = processInput(inputText);
+
+            document.getElementById("outputArea").value = results;
+            document.getElementById("orderGuidanceArea").value = orderGuidance;
+        }
     </script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Input Section -->
+        <div class="section">
+            <h1>Order Processing</h1>
+            <label for="inputArea">Input (Tab-Separated Data):</label>
+            <textarea id="inputArea" placeholder="Enter your data here (e.g. CN1\tA\t5)..."></textarea>
+            <button onclick="handleProcess()">Process</button>
+        </div>
+
+        <!-- Output Section -->
+        <div class="section">
+            <label for="outputArea">Processed Output:</label>
+            <textarea id="outputArea" readonly placeholder="The results will appear here..."></textarea>
+
+            <label for="orderGuidanceArea">Order Guidance:</label>
+            <textarea id="orderGuidanceArea" readonly placeholder="The order guidance will appear here..."></textarea>
+        </div>
+    </div>
 </body>
 
 </html>
