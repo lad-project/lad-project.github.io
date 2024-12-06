@@ -168,13 +168,13 @@ Zhong	守泽千秋[L]	2"></textarea>
                     const minRemainRec = tempRec.reduce((min, rec) => rec.remainNumber < min.remainNumber ? rec : min);
                     const subNumber = minRemainRec.remainNumber;
                     const collect = tempRec.map(rec => rec.character).sort();
-                    for (let i = 0; i < minRemainRec.remainNumber; i++) {
+                    for (let i = 0; i < subNumber; i++) {
                         resultSet.push(collect);
                     }
                     tempRec.sort((a, b) => b.remainNumber - a.remainNumber)
                     tempRec.forEach(rec => {
-                        rec.orderNum += minRemainRec.subNumber
-                        rec.remainNumber -= minRemainRec.subNumber
+                        rec.orderNum += subNumber
+                        rec.remainNumber -= subNumber
 
                     });
                     tempRec = tempRec.filter(rec => rec.remainNumber > 0);
